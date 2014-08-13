@@ -11,6 +11,11 @@ August 13, 2014
 The purpose of this project is to provide a simple example on the usage of websockets.
 This program is distributed for illustrative purposes only, and with no warranties of any kind.
 
+
+DEPENDENCY MANAGEMENT
+---------------------
+Use the "eclipse" gradle task to build eclipse project files
+
 HOW TO USE THIS TUTORIAL
 ------------------------
 
