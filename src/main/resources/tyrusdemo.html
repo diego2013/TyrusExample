@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+ 
+<html>
+    <head>
+        <title>Tyrus Demo</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+    </head>
+    <body>
+       
+        <div>
+            <input type="text" id="messageinput"/>
+            <label>message to be echoed</label>
+        </div>
+        <div>
+        <label>(or convert it into a drop-down menu to subscribe to different topics...)</label>
+        </div>
+        <div>
+            <button type="button" onclick="openSocket();" >Open</button>
+            <button type="button" onclick="send();" >Send</button>
+            <button type="button" onclick="closeSocket();" >Close</button>
+        </div>
+        <!-- Server responses get written here -->
+        <div id="messages"></div>
+       
+        <!-- Script to utilise the WebSocket -->
+        <script type="text/javascript">
+                       
+            var webSocket;
+            var messages = document.getElementById("messages");
+           
+           
+            function openSocket(){
+
+                if(webSocket !== undefined){
+                	/*
+                	CONNECTING = 0
+                	OPEN = 1
+                	CLOSING = 2
+                	CLOSED = 3
+                	*/
+                    console.info("Ready State: "+webSocket.readyState)
+                }
+
+                // Ensures only one connection is open at a time
+                if(webSocket !== undefined && webSocket.readyState !== WebSocket.CLOSED){
+                   writeResponse("WebSocket is already opened.");
+                    return;
+                }
+                
+                // Create a new instance of the websocket
+                //webSocket = new WebSocket("ws://localhost:8080/TyrusExample/echo");
+//                 webSocket = new WebSocket("ws://openice.info/DDS/DDS"); //OLD URL
+                webSocket = new WebSocket("ws://openice.info/websocket/");
+                 
+                /**
+                 * Binds functions to the listeners for the websocket.
+                 */
+                webSocket.onopen = function(event){
+                    if(webSocket !== undefined && webSocket.readyState === WebSocket.OPEN){
+                        writeResponse("Connection open");
+                    }
+
+                    // Due to what seems to be a browser-related bug 
+                    // http://stackoverflow.com/questions/12170230/why-do-i-get-two-connections-from-websocket-client-one-is-empty
+                    // onopen gets called twice
+                    // and the first time event.data is undefined.
+					// so we are going to ignore the event if data is undefined
+                    if(event.data === undefined){
+                        return;
+                    }
+
+ 
+                    writeResponse(event.data);
+                };
+ 
+                webSocket.onmessage = function(event){
+                    writeResponse(event.data);
+                };
+ 
+                webSocket.onclose = function(event){
+                    writeResponse("Connection closed");
+                };
+            }
+           
+            /**
+             * Sends the value of the text input to the server
+             */
+            function send(){
+               var text = document.getElementById("messageinput").value;
+               //you can use the textbox to prompt the user for a messageto be echoed
+               //webSocket.send(text); //for echo demo
+               
+               //or you can ignore it and dietly send a request to subscribe to a DDS topic
+               // or even beter, you could let the user choose between different topics to subscribe.
+//                var req = {}
+//                req.messageType = 'Subscribe';
+//                req.domain = 15;
+//                req.topic = 'Numeric'; //could use var 'text' to subscribe to different topics
+//                var json = JSON.stringify(req);
+
+               var json = JSON.stringify({
+                "messageType":"Subscribe",
+                "domain":15,
+                "topic":"Numeric"
+               });
+                
+               webSocket.send(json);
+               
+            }
+           
+            function closeSocket(){
+                webSocket.close();
+            }
+ 
+            function writeResponse(text){
+                messages.innerHTML += "<br/>" + text;
+            }
+           
+        </script>
+       
+    </body>
+</html>
